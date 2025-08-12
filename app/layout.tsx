@@ -1,19 +1,12 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { GeistSans } from 'geist/font'
+import { GeistMono } from 'geist/font/mono'
 import "./globals.css"
 import { AuthProvider } from "@/contexts/auth-context"
 import { CartProvider } from "@/contexts/cart-context"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-})
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-})
+// GeistSans and GeistMono already provide the variable property
 
 export const metadata: Metadata = {
   title: "Fuel at Door Step - Online Petroleum Products Delivery",
@@ -66,7 +59,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
         <AuthProvider>
           <CartProvider>{children}</CartProvider>
         </AuthProvider>
