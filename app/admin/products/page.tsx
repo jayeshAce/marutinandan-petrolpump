@@ -60,6 +60,7 @@ export default function AdminProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -87,6 +88,33 @@ export default function AdminProductsPage() {
     setProducts([...products, product])
     setNewProduct({ name: "", category: "", price: "", stock: "", unit: "", description: "" })
     setIsAddDialogOpen(false)
+  }
+
+  const handleEditProduct = (product) => {
+    setEditingProduct(product)
+    setNewProduct({
+      name: product.name,
+      category: product.category,
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      unit: product.unit,
+      description: product.description,
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleUpdateProduct = () => {
+    const updatedProduct = {
+      ...editingProduct,
+      ...newProduct,
+      price: Number.parseFloat(newProduct.price),
+      stock: Number.parseInt(newProduct.stock),
+      status: Number.parseInt(newProduct.stock) < 50 ? "low_stock" : "active",
+    }
+    setProducts(products.map((p) => (p.id === editingProduct.id ? updatedProduct : p)))
+    setNewProduct({ name: "", category: "", price: "", stock: "", unit: "", description: "" })
+    setEditingProduct(null)
+    setIsEditDialogOpen(false)
   }
 
   const handleDeleteProduct = (id: number) => {
@@ -128,7 +156,15 @@ export default function AdminProductsPage() {
             <p className="text-gray-600">Manage your petroleum products and inventory</p>
           </div>
 
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <Dialog
+            open={isAddDialogOpen || isEditDialogOpen}
+            onOpenChange={(open) => {
+              if (!open) {
+                setIsAddDialogOpen(false)
+                setIsEditDialogOpen(false)
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
@@ -137,7 +173,7 @@ export default function AdminProductsPage() {
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Add New Product</DialogTitle>
+                <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -207,8 +243,11 @@ export default function AdminProductsPage() {
                     placeholder="Product description"
                   />
                 </div>
-                <Button onClick={handleAddProduct} className="w-full bg-blue-600 hover:bg-blue-700">
-                  Add Product
+                <Button
+                  onClick={editingProduct ? handleUpdateProduct : handleAddProduct}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  {editingProduct ? "Update Product" : "Add Product"}
                 </Button>
               </div>
             </DialogContent>
@@ -290,7 +329,7 @@ export default function AdminProductsPage() {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex space-x-2">
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handleEditProduct(product)}>
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button

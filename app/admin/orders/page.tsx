@@ -114,6 +114,24 @@ export default function AdminOrdersPage() {
     )
   }
 
+  const handleQuickAssign = (orderId: string, deliveryBoyName: string) => {
+    setOrders(
+      orders.map((order) =>
+        order.id === orderId
+          ? {
+              ...order,
+              assignedTo: deliveryBoyName,
+              status: order.status === "preparing" ? "on_the_way" : order.status,
+            }
+          : order,
+      ),
+    )
+  }
+
+  const handleReassign = (orderId: string, newDeliveryBoy: string) => {
+    setOrders(orders.map((order) => (order.id === orderId ? { ...order, assignedTo: newDeliveryBoy } : order)))
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -202,12 +220,47 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="py-4 px-4">
                         {order.assignedTo ? (
-                          <div className="text-sm">
-                            <div className="font-medium">{order.assignedTo}</div>
-                            <div className="text-gray-500">Assigned</div>
+                          <div className="space-y-1">
+                            <div className="text-sm">
+                              <div className="font-medium">{order.assignedTo}</div>
+                              <div className="text-gray-500">Assigned</div>
+                            </div>
+                            <Select onValueChange={(value) => handleReassign(order.id, value)}>
+                              <SelectTrigger className="h-7 text-xs">
+                                <SelectValue placeholder="Reassign" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {deliveryBoys
+                                  .filter((boy) => boy.status === "active" && boy.name !== order.assignedTo)
+                                  .map((boy) => (
+                                    <SelectItem key={boy.id} value={boy.name}>
+                                      {boy.name}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         ) : (
-                          <Badge variant="outline">Unassigned</Badge>
+                          <div className="space-y-1">
+                            <Badge variant="outline">Unassigned</Badge>
+                            <Select onValueChange={(value) => handleQuickAssign(order.id, value)}>
+                              <SelectTrigger className="h-7 text-xs">
+                                <SelectValue placeholder="Assign" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {deliveryBoys
+                                  .filter((boy) => boy.status === "active")
+                                  .map((boy) => (
+                                    <SelectItem key={boy.id} value={boy.name}>
+                                      <div className="flex items-center">
+                                        <Truck className="h-3 w-3 mr-2" />
+                                        {boy.name}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         )}
                       </td>
                       <td className="py-4 px-4">

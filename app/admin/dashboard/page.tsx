@@ -190,7 +190,11 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
-              <Button variant="outline" className="w-full mt-4 bg-transparent">
+              <Button
+                variant="outline"
+                className="w-full mt-4 bg-transparent"
+                onClick={() => router.push("/admin/orders")}
+              >
                 View All Orders
               </Button>
             </CardContent>
@@ -226,7 +230,11 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
-              <Button variant="outline" className="w-full mt-4 bg-transparent">
+              <Button
+                variant="outline"
+                className="w-full mt-4 bg-transparent"
+                onClick={() => router.push("/admin/delivery")}
+              >
                 Manage Delivery Team
               </Button>
             </CardContent>

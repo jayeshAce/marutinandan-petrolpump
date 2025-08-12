@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -8,13 +8,31 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Phone, Truck, Clock, CheckCircle, Package, User } from "lucide-react"
+import { MapPin, Phone, Truck, Clock, CheckCircle, Package, User, Navigation } from "lucide-react"
 
 export default function TrackOrderPage() {
   const [orderNumber, setOrderNumber] = useState("")
   const [trackingData, setTrackingData] = useState(null)
+  const [currentLocation, setCurrentLocation] = useState({
+    lat: 19.076,
+    lng: 72.8777,
+    address: "Near Sector 10 Market, Mumbai",
+  })
 
-  // Mock tracking data
+  useEffect(() => {
+    if (trackingData) {
+      const interval = setInterval(() => {
+        setCurrentLocation((prev) => ({
+          ...prev,
+          lat: prev.lat + (Math.random() - 0.5) * 0.001,
+          lng: prev.lng + (Math.random() - 0.5) * 0.001,
+          address: `Moving towards ${trackingData.driver.name}'s destination`,
+        }))
+      }, 5000)
+      return () => clearInterval(interval)
+    }
+  }, [trackingData])
+
   const mockTrackingData = {
     orderNumber: "MP2024001",
     status: "on_the_way",
@@ -24,6 +42,9 @@ export default function TrackOrderPage() {
       phone: "+91 98765 43210",
       photo: "/placeholder.svg?height=60&width=60",
       vehicle: "Truck - MH 12 AB 1234",
+      vehicleType: "Fuel Tanker",
+      licensePlate: "MH 12 AB 1234",
+      fuelCapacity: "5000L",
     },
     items: [
       { name: "Premium Petrol", quantity: 10, unit: "litres" },
@@ -37,6 +58,12 @@ export default function TrackOrderPage() {
       { status: "Delivered", time: "Expected by 12:00 PM", completed: false },
     ],
     deliveryOTP: "4567",
+    realTimeData: {
+      speed: "45 km/h",
+      lastUpdate: new Date().toLocaleTimeString(),
+      batteryLevel: "85%",
+      signalStrength: "Strong",
+    },
   }
 
   const handleTrackOrder = () => {
@@ -212,14 +239,30 @@ export default function TrackOrderPage() {
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
                   Live Location
+                  <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 border-green-200">
+                    Live
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
+                <div className="bg-gradient-to-br from-blue-50 to-green-50 h-64 rounded-lg flex flex-col items-center justify-center border-2 border-dashed border-blue-200">
                   <div className="text-center">
-                    <Truck className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <div className="text-gray-600">Live GPS tracking will be available here</div>
-                    <div className="text-sm text-gray-500 mt-1">Track your delivery partner's real-time location</div>
+                    <div className="relative mb-4">
+                      <Truck className="h-12 w-12 text-blue-500 mx-auto animate-pulse" />
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-ping"></div>
+                    </div>
+                    <div className="text-lg font-semibold text-gray-700 mb-2">
+                      Vehicle Location: {currentLocation.address}
+                    </div>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <div>Speed: {trackingData.realTimeData.speed}</div>
+                      <div>Last Update: {trackingData.realTimeData.lastUpdate}</div>
+                      <div>Signal: {trackingData.realTimeData.signalStrength}</div>
+                    </div>
+                    <Button className="mt-4 bg-blue-600 hover:bg-blue-700">
+                      <Navigation className="h-4 w-4 mr-2" />
+                      Open in Maps
+                    </Button>
                   </div>
                 </div>
               </CardContent>

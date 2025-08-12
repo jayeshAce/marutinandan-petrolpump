@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AdminLayout } from "@/components/admin/admin-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +8,15 @@ import { Button } from "@/components/ui/button"
 import { MapPin, Phone, Truck, Clock, Navigation } from "lucide-react"
 
 export default function AdminTrackingPage() {
+  const [lastUpdate, setLastUpdate] = useState(new Date())
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdate(new Date())
+    }, 10000) // Update every 10 seconds
+    return () => clearInterval(interval)
+  }, [])
+
   const [activeDeliveries] = useState([
     {
       id: "MP2024002",
@@ -21,6 +30,13 @@ export default function AdminTrackingPage() {
       status: "on_the_way",
       orderValue: "₹2,180",
       startTime: "11:30 AM",
+      gpsData: {
+        lat: 19.076,
+        lng: 72.8777,
+        speed: "45 km/h",
+        batteryLevel: "85%",
+        lastPing: "2 min ago",
+      },
     },
     {
       id: "MP2024004",
@@ -34,6 +50,13 @@ export default function AdminTrackingPage() {
       status: "on_the_way",
       orderValue: "₹1,450",
       startTime: "12:00 PM",
+      gpsData: {
+        lat: 19.0761,
+        lng: 72.8778,
+        speed: "50 km/h",
+        batteryLevel: "90%",
+        lastPing: "1 min ago",
+      },
     },
   ])
 
@@ -91,19 +114,45 @@ export default function AdminTrackingPage() {
         {/* Live Map Placeholder */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Live Map View
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Live Map View
+                <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 border-green-200">
+                  Live • Updated {lastUpdate.toLocaleTimeString()}
+                </Badge>
+              </CardTitle>
+              <Button variant="outline" size="sm">
+                <Navigation className="h-4 w-4 mr-2" />
+                Full Screen
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="bg-gray-100 h-96 rounded-lg flex items-center justify-center">
+            <div className="bg-gradient-to-br from-blue-50 to-green-50 h-96 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-200 relative">
+              <div className="absolute top-4 left-4 bg-white rounded-lg p-2 shadow-md">
+                <div className="text-xs font-medium text-gray-600">Active Vehicles</div>
+                <div className="text-lg font-bold text-blue-600">{activeDeliveries.length}</div>
+              </div>
+
+              <div className="absolute top-4 right-4 bg-white rounded-lg p-2 shadow-md">
+                <div className="text-xs font-medium text-gray-600">Coverage Area</div>
+                <div className="text-lg font-bold text-green-600">15 km²</div>
+              </div>
+
               <div className="text-center">
-                <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <div className="relative mb-4">
+                  <MapPin className="h-16 w-16 text-blue-400 mx-auto" />
+                  <div className="absolute top-0 right-0 flex space-x-1">
+                    {activeDeliveries.map((_, index) => (
+                      <div key={index} className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    ))}
+                  </div>
+                </div>
                 <div className="text-xl font-semibold text-gray-600 mb-2">Interactive GPS Map</div>
-                <div className="text-gray-500">Real-time vehicle tracking will be displayed here</div>
-                <div className="text-sm text-gray-400 mt-2">
-                  Integration with Google Maps or similar mapping service
+                <div className="text-gray-500 mb-2">Real-time vehicle tracking with live updates</div>
+                <div className="text-sm text-gray-400">
+                  Integration with Google Maps • Auto-refresh every 10 seconds
                 </div>
               </div>
             </div>
@@ -114,7 +163,13 @@ export default function AdminTrackingPage() {
           {/* Active Deliveries */}
           <Card>
             <CardHeader>
-              <CardTitle>Active Deliveries</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Active Deliveries</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => setLastUpdate(new Date())}>
+                  <Clock className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -122,7 +177,13 @@ export default function AdminTrackingPage() {
                   <div key={delivery.id} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="font-medium">Order #{delivery.id}</div>
-                      <Badge className={getStatusColor(delivery.status)}>On the Way</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getStatusColor(delivery.status)}>On the Way</Badge>
+                        <div className="flex items-center gap-1 text-xs text-green-600">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          GPS
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-2 text-sm">
@@ -151,6 +212,21 @@ export default function AdminTrackingPage() {
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-gray-400" />
                         <span className="text-green-600 font-medium">ETA: {delivery.estimatedArrival}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 p-2 bg-gray-50 rounded text-xs space-y-1">
+                      <div className="flex justify-between">
+                        <span>Speed:</span>
+                        <span className="font-medium">{delivery.gpsData.speed}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Battery:</span>
+                        <span className="font-medium">{delivery.gpsData.batteryLevel}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Last Ping:</span>
+                        <span className="font-medium text-green-600">{delivery.gpsData.lastPing}</span>
                       </div>
                     </div>
 

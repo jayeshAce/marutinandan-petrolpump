@@ -12,16 +12,19 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CreditCard, Smartphone, Banknote, MapPin, Clock, CheckCircle, AlertCircle } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CreditCard, Smartphone, Banknote, MapPin, Clock, CheckCircle, AlertCircle, Calendar } from "lucide-react"
 import { UPIPayment } from "@/components/payment/upi-payment"
 import { CardPayment } from "@/components/payment/card-payment"
 
 export default function CheckoutPage() {
   const router = useRouter()
   const [paymentMethod, setPaymentMethod] = useState("cod")
-  const [deliveryTime, setDeliveryTime] = useState("standard")
+  const [deliveryTime, setDeliveryTime] = useState("scheduled")
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentError, setPaymentError] = useState("")
+  const [selectedDate, setSelectedDate] = useState("")
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("")
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -38,9 +41,34 @@ export default function CheckoutPage() {
   ]
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const deliveryFee = deliveryTime === "express" ? 100 : 0
+  const deliveryFee = 0
   const gst = subtotal * 0.18
   const total = subtotal + deliveryFee + gst
+
+  const getAvailableDates = () => {
+    const dates = []
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date()
+      date.setDate(date.getDate() + i)
+      dates.push({
+        value: date.toISOString().split("T")[0],
+        label: date.toLocaleDateString("en-IN", {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+        }),
+      })
+    }
+    return dates
+  }
+
+  const timeSlots = [
+    { value: "09:00-11:00", label: "9:00 AM - 11:00 AM" },
+    { value: "11:00-13:00", label: "11:00 AM - 1:00 PM" },
+    { value: "13:00-15:00", label: "1:00 PM - 3:00 PM" },
+    { value: "15:00-17:00", label: "3:00 PM - 5:00 PM" },
+    { value: "17:00-19:00", label: "5:00 PM - 7:00 PM" },
+  ]
 
   const validateForm = () => {
     const required = ["firstName", "lastName", "address", "city", "pincode", "phone"]
@@ -56,6 +84,10 @@ export default function CheckoutPage() {
     }
     if (formData.phone.length !== 10) {
       setPaymentError("Please enter a valid 10-digit phone number")
+      return false
+    }
+    if (deliveryTime === "scheduled" && (!selectedDate || !selectedTimeSlot)) {
+      setPaymentError("Please select delivery date and time slot")
       return false
     }
     return true
@@ -78,7 +110,6 @@ export default function CheckoutPage() {
         // COD order processing
         await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulate API call
 
-        // Store order details (in real app, this would be API call)
         const orderData = {
           orderId,
           items: cartItems,
@@ -86,6 +117,13 @@ export default function CheckoutPage() {
           paymentMethod: "Cash on Delivery",
           deliveryAddress: formData,
           deliveryTime,
+          deliverySlot:
+            deliveryTime === "scheduled"
+              ? {
+                  date: selectedDate,
+                  timeSlot: selectedTimeSlot,
+                }
+              : null,
           status: "confirmed",
           createdAt: new Date().toISOString(),
         }
@@ -222,6 +260,15 @@ export default function CheckoutPage() {
               <CardContent>
                 <RadioGroup value={deliveryTime} onValueChange={setDeliveryTime}>
                   <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="scheduled" id="scheduled" />
+                    <Label htmlFor="scheduled" className="flex-1">
+                      <div>
+                        <div className="font-medium">Scheduled Delivery</div>
+                        <div className="text-sm text-gray-500">Choose your preferred date and time • Free</div>
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="standard" id="standard" />
                     <Label htmlFor="standard" className="flex-1">
                       <div>
@@ -230,25 +277,48 @@ export default function CheckoutPage() {
                       </div>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="express" id="express" />
-                    <Label htmlFor="express" className="flex-1">
-                      <div>
-                        <div className="font-medium">Express Delivery</div>
-                        <div className="text-sm text-gray-500">Within 1 hour • ₹100 extra</div>
-                      </div>
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="scheduled" id="scheduled" />
-                    <Label htmlFor="scheduled" className="flex-1">
-                      <div>
-                        <div className="font-medium">Scheduled Delivery</div>
-                        <div className="text-sm text-gray-500">Choose your preferred time • Free</div>
-                      </div>
-                    </Label>
-                  </div>
                 </RadioGroup>
+
+                {deliveryTime === "scheduled" && (
+                  <div className="mt-4 space-y-4 p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center gap-2 text-blue-700 font-medium">
+                      <Calendar className="h-4 w-4" />
+                      Select Delivery Slot
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="deliveryDate">Delivery Date *</Label>
+                        <Select value={selectedDate} onValueChange={setSelectedDate}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select date" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getAvailableDates().map((date) => (
+                              <SelectItem key={date.value} value={date.value}>
+                                {date.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="timeSlot">Time Slot *</Label>
+                        <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select time" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timeSlots.map((slot) => (
+                              <SelectItem key={slot.value} value={slot.value}>
+                                {slot.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -296,6 +366,13 @@ export default function CheckoutPage() {
                         transactionId,
                         deliveryAddress: formData,
                         deliveryTime,
+                        deliverySlot:
+                          deliveryTime === "scheduled"
+                            ? {
+                                date: selectedDate,
+                                timeSlot: selectedTimeSlot,
+                              }
+                            : null,
                         status: "paid",
                         createdAt: new Date().toISOString(),
                       }
@@ -319,6 +396,13 @@ export default function CheckoutPage() {
                         transactionId,
                         deliveryAddress: formData,
                         deliveryTime,
+                        deliverySlot:
+                          deliveryTime === "scheduled"
+                            ? {
+                                date: selectedDate,
+                                timeSlot: selectedTimeSlot,
+                              }
+                            : null,
                         status: "paid",
                         createdAt: new Date().toISOString(),
                       }

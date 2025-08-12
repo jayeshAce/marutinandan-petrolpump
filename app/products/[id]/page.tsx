@@ -7,7 +7,7 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Star, ShoppingCart, Heart, Minus, Plus, Truck, Shield, RotateCcw } from "lucide-react"
+import { Star, ShoppingCart, Heart, Minus, Plus, Truck, Shield } from "lucide-react"
 import { useCart } from "@/contexts/cart-context"
 
 // Mock product data - in real app this would come from API
@@ -130,7 +130,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Service Features */}
-            <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-2 gap-4 text-center">
               <div className="flex flex-col items-center">
                 <Truck className="h-8 w-8 text-blue-600 mb-2" />
                 <span className="text-sm font-medium">Free Delivery</span>
@@ -140,11 +140,6 @@ export default function ProductDetailPage() {
                 <Shield className="h-8 w-8 text-green-600 mb-2" />
                 <span className="text-sm font-medium">Quality Assured</span>
                 <span className="text-xs text-gray-500">100% genuine products</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <RotateCcw className="h-8 w-8 text-orange-600 mb-2" />
-                <span className="text-sm font-medium">Easy Returns</span>
-                <span className="text-xs text-gray-500">7-day return policy</span>
               </div>
             </div>
           </div>

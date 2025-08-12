@@ -7,7 +7,19 @@ import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { LayoutDashboard, Package, Users, Truck, MapPin, BarChart3, Settings, LogOut, Menu, Bell } from "lucide-react"
+import {
+  LayoutDashboard,
+  Package,
+  Users,
+  Truck,
+  MapPin,
+  BarChart3,
+  Settings,
+  LogOut,
+  Menu,
+  Bell,
+  Clock,
+} from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -15,6 +27,7 @@ const navigation = [
   { name: "Orders", href: "/admin/orders", icon: Package },
   { name: "Customers", href: "/admin/customers", icon: Users },
   { name: "Delivery Team", href: "/admin/delivery", icon: Truck },
+  { name: "Delivery Slots", href: "/admin/delivery-slots", icon: Clock },
   { name: "GPS Tracking", href: "/admin/tracking", icon: MapPin },
   { name: "Reports", href: "/admin/reports", icon: BarChart3 },
   { name: "Settings", href: "/admin/settings", icon: Settings },
